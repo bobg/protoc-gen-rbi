@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
 
-	"github.com/davecgh/go-spew/spew"
 	pgs "github.com/lyft/protoc-gen-star"
 	pgsgo "github.com/lyft/protoc-gen-star/lang/go"
 
@@ -51,8 +51,6 @@ func (m *rbiModule) InitContext(c pgs.BuildContext) {
 func (m *rbiModule) Name() string { return "rbi" }
 
 func (m *rbiModule) Execute(targets map[string]pgs.File, pkgs map[string]pgs.Package) []pgs.Artifact {
-	log.Printf("xxx rbiModule.Execute, params are:\n%s", spew.Sdump(m.ctx.Params()))
-
 	for _, t := range targets {
 		m.generate(t)
 
@@ -81,6 +79,9 @@ func (m *rbiModule) generateServices(f pgs.File) {
 func (m *rbiModule) rbiFile(inp pgs.File, newSuffix string) string {
 	f := strings.TrimSuffix(inp.InputPath().String(), ".proto")
 	f += newSuffix
+	if subdir := m.ctx.Params().Str("subdir"); subdir != "" {
+		f = filepath.Join(subdir, f) // e.g. a/b/c -> subdir/a/b/c
+	}
 	return f
 }
 
